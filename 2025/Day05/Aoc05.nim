@@ -1,27 +1,19 @@
 import std/strutils
-import std/algorithm
-import std/sequtils
-import std/strformat
-import std/re
-import std/tables
-import std/sets
 import std/math
-import std/bitops
 
 
-proc prepareInput(
-    filename: string, filename2: string
-): tuple[fresh: seq[HSlice[int, int]], ids: seq[int]] =
-  var fresh: seq[HSlice[int, int]] = @[]
-  for line in lines(filename):
+proc prepareInput(filename: string): tuple[fresh: seq[Slice[int]], ids: seq[int]] =
+  var fresh: seq[Slice[int]] = @[]
+  let input = readFile(filename).split("\n\n")
+  for line in input[0].splitLines:
     let vals = line.split('-')
     fresh.add(vals[0].parseInt .. vals[1].parseInt)
   var ids: seq[int] = @[]
-  for line in lines(filename2):
+  for line in input[1].splitLines:
     ids.add(line.parseInt)
   return (fresh, ids)
 
-func part1(input: tuple[fresh: seq[HSlice[int, int]], ids: seq[int]]): int =
+func part1(input: tuple[fresh: seq[Slice[int]], ids: seq[int]]): int =
   var sum = 0
   for id in input.ids:
     var fresh = false
@@ -34,28 +26,31 @@ func part1(input: tuple[fresh: seq[HSlice[int, int]], ids: seq[int]]): int =
       continue
   return sum
 
-func findOverlap(db: seq[HSlice[int, int]], chk: HSlice[int, int]): int =
-  for (i, v) in db.pairs:
-    if v.a in chk or v.b in chk or chk.a in v or chk.b in v:
+func findOverlap(ranges: seq[Slice[int]], search: Slice[int]): int =
+  for (i, v) in ranges.pairs:
+    if v.a in search or v.b in search or search.a in v or search.b in v:
       return i
   return -1
 
-func part2(input: tuple[fresh: seq[HSlice[int, int]], ids: seq[int]]): int =
-  var f2: seq[HSlice[int, int]] = @[]
-  for r in input.fresh:
-    var rMod = r
-    var match = f2.findOverlap(rMod)
+func mergeRanges(ranges: seq[Slice[int]]): seq[Slice[int]] = 
+  result = @[]
+  for r in ranges:
+    var rMerged = r
+    var match = result.findOverlap(rMerged)
     while match != -1:
-      rMod = min(rMod.a, f2[match].a)..max(rMod.b, f2[match].b)
-      f2.delete(match)
-      match = f2.findOverlap(rMod)
-    f2.add(rMod)
+      rMerged = min(rMerged.a, result[match].a)..max(rMerged.b, result[match].b)
+      result.delete(match)
+      match = result.findOverlap(rMerged)
+    result.add(rMerged)
+
+func part2(input: tuple[fresh: seq[Slice[int]], ids: seq[int]]): int =
+  let merged = input.fresh.mergeRanges
   var count = 0
-  for r in f2:
+  for r in merged:
     count += r.len
   return count
 
 when isMainModule:
-  echo prepareInput("Aoc05a.txt", "Aoc05a2.txt")
-  echo $part1(prepareInput("Aoc05b.txt", "Aoc05b2.txt"))
-  echo $part2(prepareInput("Aoc05b.txt", "Aoc05b2.txt"))
+  echo prepareInput("Aoc05a.txt")
+  echo $part1(prepareInput("Aoc05b.txt"))
+  echo $part2(prepareInput("Aoc05b.txt"))
