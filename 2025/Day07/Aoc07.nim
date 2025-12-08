@@ -1,6 +1,9 @@
 import std/sequtils
 import std/strformat
+import std/strutils
 import std/tables
+import std/math
+import std/re
 
 type xy = tuple[x: int, y: int]
 func `+`(a: xy, b: xy): xy =
@@ -17,6 +20,8 @@ type inType = seq[seq[char]]
 proc prepareInput(filename: string): inType =
   var input: seq[seq[char]] = @[]
   for line in lines(filename):
+    if line.find(re"[S\^]") == -1:
+      continue
     input.add(@line)
   return input
 
@@ -41,7 +46,7 @@ func part1(input: inType): int =
 
 func debugPrintMap(map: seq[seq[int]]) =
   for line in map:
-    debugEcho line.mapIt(&"|{it:>4}|").foldl(a & b, "") & &" = {line.foldl(a + b, 0)}"
+    debugEcho line.mapIt(&"{it:>2}").join("|") & &" = {line.sum}"
 
 func part2(input: inType): int =
   let splitDirs = @[(-1, 0), (1,0)]
@@ -62,7 +67,7 @@ func part2(input: inType): int =
         else:
           map[pos] = map[pos] + beamVal 
   #map.debugPrintMap
-  return map[map.len - 1].foldl(a + b, 0)
+  return map[map.len - 1].sum
 
 when isMainModule:
   echo prepareInput("Aoc07a.txt")
