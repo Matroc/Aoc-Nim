@@ -5,6 +5,9 @@ import std/tables
 import std/math
 import std/algorithm
 import std/sugar
+import std/typeinfo
+import std/monotimes
+import std/times
 
 type xyz = tuple[x: int, y: int, z: int]
 
@@ -72,6 +75,25 @@ func part2(input: inType): int =
       return area.z
 
 when isMainModule:
-  echo prepareInput("Aoc09a.txt")
-  echo $part1(prepareInput("Aoc09b.txt"))
-  echo $part2(prepareInput("Aoc09b.txt"))
+  var before = getMonoTime()
+  let a = prepareInput("Aoc09a.txt")
+  let b = prepareInput("Aoc09b.txt")
+  var time = getMonoTime() - before
+  echo &"Parsing inputs in {time.inSeconds}.{(time.inNanoseconds mod 1000000000):09d}s: {a}"
+  var res: string
+  when declared(part1): 
+    before = getMonoTime()
+    when declared(b): 
+      res = $part1(b)
+    else:
+      res = $part1(a)
+    time = getMonoTime() - before
+    echo &"Part 1 res: {res} calculated in {time.inSeconds}.{(time.inNanoseconds mod 1000000000):09d}s"
+  when declared(part2):
+    before = getMonoTime()
+    when declared(b): 
+      res = $part2(b)
+    else:
+      res = $part2(a)
+    time = getMonoTime() - before
+    echo &"Part 2 res: {res} calculated in {time.inSeconds}.{(time.inNanoseconds mod 1000000000):09d}s"
